@@ -1,14 +1,13 @@
 dnl required version of autoconf
 AC_PREREQ([2.53])
 
-dnl TODO: fill in your package name and package version here
-AC_INIT([my-plugin-package],[0.10.0])
+AC_INIT([gst-plugin-tetime],[0.10.0])
 
 dnl required versions of gstreamer and plugins-base
 GST_REQUIRED=0.10.16
 GSTPB_REQUIRED=0.10.16
 
-AC_CONFIG_SRCDIR([src/gstplugin.c])
+AC_CONFIG_SRCDIR([src/gsttetime.c])
 AC_CONFIG_HEADERS([config.h])
 
 dnl required version of automake
