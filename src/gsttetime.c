@@ -264,8 +264,8 @@ gst_tetime_chain (GstPad * pad, GstBuffer * buf)
   rawtime = time(NULL);
   timeinfo = localtime(&rawtime);
   strftime(buffer,80,"%m/%d/%y %H:%M:%S", timeinfo);
-  g_print("time %s\n",buffer);
-  g_print("buffer len %d\n",strlen(buffer));
+  //g_print("time %s\n",buffer);
+  //g_print("buffer len %d\n",strlen(buffer));
 
 /*
   if (filter->silent == FALSE)
