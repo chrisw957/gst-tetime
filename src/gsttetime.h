@@ -71,6 +71,11 @@ struct _Gsttetime
 
   GstPad *sinkpad, *srcpad;
 
+  /* video state */
+  guint64 next_ts;
+  guint64 late;
+
+  /* properties */
   gboolean silent;
 };
 

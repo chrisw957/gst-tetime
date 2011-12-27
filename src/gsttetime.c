@@ -77,7 +77,8 @@ enum
 enum
 {
   PROP_0,
-  PROP_SILENT
+  PROP_SILENT,
+  PROP_LATE
 };
 
 /* the capabilities of the inputs and outputs.
@@ -142,6 +143,12 @@ gst_tetime_class_init (GsttetimeClass * klass)
   g_object_class_install_property (gobject_class, PROP_SILENT,
       g_param_spec_boolean ("silent", "Silent", "Produce verbose output ?",
           FALSE, G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class, PROP_LATE,
+      g_param_spec_uint64 ("late", "Late",
+          "Number of late frames", 0, G_MAXUINT64, 0,
+          G_PARAM_READWRITE));
+
 }
 
 /* initialize the new element
@@ -196,6 +203,9 @@ gst_tetime_get_property (GObject * object, guint prop_id,
     case PROP_SILENT:
       g_value_set_boolean (value, filter->silent);
       break;
+    case PROP_LATE:
+      g_value_set_uint64 (value, filter->late);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -245,6 +255,9 @@ gst_tetime_chain (GstPad * pad, GstBuffer * buf)
   GstCaps *caps = gst_buffer_get_caps(buf);
   guint16 *data = (guint16 *)GST_BUFFER_DATA(buf);
   GstStructure *structure = gst_caps_get_structure(caps, 0);
+  GstClockTime in_ts, in_dur;
+  GstBuffer *newbuf;
+
   int ch, row, column, offset;
   time_t rawtime;
   struct tm * timeinfo;
@@ -260,6 +273,25 @@ gst_tetime_chain (GstPad * pad, GstBuffer * buf)
   int height = g_value_get_int(height_gval); 
 
   filter = GST_TETIME (GST_OBJECT_PARENT (pad));
+
+  in_ts = GST_BUFFER_TIMESTAMP (buf);
+  in_dur = GST_BUFFER_DURATION (buf);
+  //g_print("in_ts %" GST_TIME_FORMAT "\n", GST_TIME_ARGS(in_ts));
+  //g_print("in_dur %" GST_TIME_FORMAT "\n\n", GST_TIME_ARGS(in_dur));
+
+  if (in_ts > (filter->next_ts + (0.5)*(in_dur)))
+        {
+        // The incoming buffer is late by more than 1.5 times,
+        // so we must have missed a frame.  To compensate, repeate
+        // this one twice
+        //g_print("#\n");
+        filter->late++;
+        //newbuf = gst_buffer_copy(buf);
+        //GST_BUFFER_TIMESTAMP(newbuf) = filter->next_ts;
+        //gst_pad_push(filter->srcpad, newbuf);
+        }
+
+  filter->next_ts = in_ts + in_dur;
 
   rawtime = time(NULL);
   timeinfo = localtime(&rawtime);
